@@ -9,12 +9,12 @@ CWD = os.getcwd()
 def setup(args):
 	if(len(args) > 0):
 		if(args[0] == 'msl'):
-			if(prompt("Do you really want to start the MSL setup? Wie oft?")):
-				call(['sudo', './setup/msl-setup.sh'])
+			if(prompt("Do you really want to start the MSL setup?")):
+				call(['sudo', './scripts/msl-setup.sh'])
 
 		elif(args[0] == 'ttb'):
 			if(prompt("Do you really want to start the MSL setup?")):
-				call(['sudo', './setup/ttb-setup.sh'])
+				call(['sudo', './scripts/ttb-setup.sh'])
 	else:
 		print("Choose msl, ttb or msl-robot")
 
