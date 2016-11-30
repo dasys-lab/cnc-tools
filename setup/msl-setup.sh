@@ -37,7 +37,7 @@ append_unique() {
 	grep -q -F "$*" "$f" || echo "$*" >>"$f"
 }
 
-taskdir=$PWD/.msl_tasks
+taskdir=$HOME/.msl_tasks
 mark_done() {
 	touch $taskdir/$1
 }
@@ -164,7 +164,7 @@ clone_git_repos() {
 		if [ ! -d "${workspace_src}/${r}" ]
 		then
 			msg "Cloning repository $r"
-			git clone -b $branch ${github_url}${r}'.git' ${workspace_src}/${r}
+			git clone -b $branch ${github_url}${r}'.git' ${workspace_src}/${r} || exit -1
 		else
 			msg "$r already exists!"
 		fi
@@ -237,6 +237,12 @@ if [ "$(id -u)" -ne 0 ] ; then
 	msg "Configuration done!"
 else
 	# First entry
+	if [ -n "$1" ]
+	then
+		$1
+		exit 0
+	fi
+
 	mkdir -p $taskdir
 
 	root_tasks
