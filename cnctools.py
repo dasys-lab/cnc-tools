@@ -3,42 +3,28 @@
 import argparse
 import os
 from subprocess import call
+import utils
 
 CWD = os.getcwd()
-DIR = os.path.realpath(__file__)
+DIR = os.path.dirname(os.path.realpath(__file__))
 
 def setup(args):
 	if(len(args) > 0):
 		if(args[0] == 'msl'):
-			if(prompt("Do you really want to start the MSL setup?")):
+			if(utils.prompt("Do you really want to start the MSL setup?")):
 				call(['sudo', DIR + '/scripts/msl-setup.sh'])
 
 		elif(args[0] == 'ttb'):
-			if(prompt("Do you really want to start the MSL setup?")):
+			if(utils.prompt("Do you really want to start the MSL setup?")):
 				call(['sudo', DIR + '/scripts/ttb-setup.sh'])
 	else:
-		print("Choose msl, ttb or msl-robot")
+		print("Choose msl or ttb")
+
 
 def eclipse(args):
 	eargs = [DIR + '/scripts/eclipse.sh']
 	eargs.extend(args)
 	call(eargs)
-
-
-def prompt(text, default=False):
-	answer = str.lower(input(text + " [" + ("Y" if default else "y") + "/" + ("n" if default else "N") + "] "))
-
-	if(answer == 'y'):
-		return True
-	
-	if(answer == 'n'):
-		return False
-
-	if(answer == ''):
-		return default
-
-	# wrong input, repeat
-	return prompt(text, default)
 
 
 tools = {

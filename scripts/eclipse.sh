@@ -4,7 +4,7 @@ econf="$cnctpath/data/eclipse/language.settings.xml"
 
 if [ -z "$1" ]
 then
-	echo "usage: $0 workspace"
+	echo "usage: $0 cnws"
 	exit 1
 fi
 
@@ -32,3 +32,4 @@ cd "$buildfolder"
 find ./ -type f -readable -writable -exec sed -i "s/199711L/201103L/g" {} \;
 cd "$ldir"
 
+echo "done"
