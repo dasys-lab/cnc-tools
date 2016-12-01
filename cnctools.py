@@ -6,6 +6,8 @@ from subprocess import call
 
 CWD = os.getcwd()
 
+# TODO: Make it possible to call cntools from everywhere(no ./script/...)
+# In shell you can do `dirname $0` to get the scripts path
 def setup(args):
 	if(len(args) > 0):
 		if(args[0] == 'msl'):
@@ -17,6 +19,11 @@ def setup(args):
 				call(['sudo', './scripts/ttb-setup.sh'])
 	else:
 		print("Choose msl, ttb or msl-robot")
+
+def eclipse(args):
+	eargs = ['./scripts/eclipse.sh']
+	eargs.extend(args)
+	call(eargs)
 
 
 def prompt(text, default=False):
@@ -36,7 +43,8 @@ def prompt(text, default=False):
 
 
 tools = {
-	'setup': setup
+	'setup': setup,
+	'eclipse': eclipse
 }
 
 

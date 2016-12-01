@@ -1,3 +1,4 @@
+#!/bin/sh
 cnctpath="$(dirname $0)/.."
 econf="$cnctpath/data/eclipse/language.settings.xml"
 
