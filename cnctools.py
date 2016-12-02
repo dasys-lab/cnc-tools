@@ -26,10 +26,14 @@ def eclipse(args):
 	eargs.extend(args)
 	call(eargs)
 
+def repos(args):
+	utils.getGithubRepos("CarpeNoctem")
+
 
 tools = {
 	'setup': setup,
-	'eclipse': eclipse
+	'eclipse': eclipse,
+	'repos': repos
 }
 
 
