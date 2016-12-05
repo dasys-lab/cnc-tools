@@ -26,46 +26,53 @@ def getGithubRepos(username):
 
 	entries = list(map(lambda x: x['name'], data))
 
-	main = urwid.Padding(urwid.Frame(urwid.LineBox(menu(entries), u'GitHub Repositories'), footer=urwid.Columns([urwid.Button("Select (space)"), urwid.Button("Finish (return)")], dividechars=2)), left=4, right=4)
-	top = urwid.Overlay(main, urwid.SolidFill(u'\N{MEDIUM SHADE}'),
-		align='center', width=('relative', 100),
-		valign='middle', height=('relative', 100),
-		min_width=20, min_height=9)
-	urwid.MainLoop(top, palette=[('reversed', 'standout', '')]).run()
+	showSelection(entries)
 
 	return data
 
 def showSelection(entries):
-	selection = 0
-	while(True):
-		clearTerminal()
-		num = 0
-		for entry in entries:
-			print("[{}] {}".format("x" if num == selection else " ", entry))
-			num += 1
+	footer = urwid.Text("Select with <LMB> or <space>, hit <return> when finished.")
 
-		inp = getKey()
-		if(inp == 'k'):
-			selection = max(0, selection - 1)
-		elif(inp == 'i'):
-			selection = min(len(entries) - 1, selection + 1)
-
-def menu(choices):
+	# create list body
+	
 	body = []
-	for c in choices:
+	for c in entries:
 		checkbox = urwid.CheckBox(c)
 		urwid.connect_signal(checkbox, 'change', item_chosen, c)
 		body.append(urwid.AttrMap(checkbox, None, focus_map='reversed'))
 
 	body.append(urwid.Divider())
-	return urwid.ListBox(urwid.SimpleFocusListWalker(body))
+
+	listWalker = urwid.SimpleFocusListWalker(body)
+	listBox = urwid.ListBox(listWalker)
+
+	frame = urwid.Frame(
+		urwid.LineBox(
+			listBox,
+			u'GitHub Repositories'
+		),
+		footer=footer
+	)
+
+	main = urwid.Padding(
+		frame,
+		left=2,
+		right=2
+	)
+
+	urwid.MainLoop(main, input_filter=filterEnter, palette=[('reversed', 'standout', '')]).run()
+	print("Selection finished")
+
+def filterEnter(keys, raw):
+	if("enter" in keys):
+		raise urwid.ExitMainLoop()
+	else:
+		return keys
+
 
 def item_chosen(checkbox, new_state, choice):
 	response = urwid.Text([u'You chose ', choice, u'\n'])
 	done = urwid.Button(u'Ok')
-	urwid.connect_signal(done, 'click', exit_program)
+	#urwid.connect_signal(done, 'click', exit_program)
 	#main.original_widget = urwid.Filler(urwid.Pile([response,
 	#	urwid.AttrMap(done, None, focus_map='reversed')]))
-
-def exit_program(button):
-	raise urwid.ExitMainLoop()
