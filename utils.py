@@ -25,12 +25,6 @@ def prompt(text, default=False):
 def getGithubRepos(username):
 	resp = urllib.request.urlopen("https://api.github.com/users/carpe-noctem-cassel/repos").read().decode("utf-8")
 	data = json.loads(resp)
-
-	entries = { x['name']: x['name'] for x in data }
-
-	repos = showMultiSelection(u'GitHub Repositories', dict(entries), selectedLabels = ["alica", "alica-plan-designer", "cnc-msl", "supplementary", "msl_gazebo_simulator"])
-	print("repos:", repos)
-
 	return data
 
 def showMultiSelection(title, entries, selectedKeys = [], selectedLabels = []):
@@ -50,10 +44,7 @@ def showMultiSelection(title, entries, selectedKeys = [], selectedLabels = []):
 	# create list body
 	body = []
 
-	#sort
-	items = sorted(entries.items(), key=operator.itemgetter(1))
-
-	for key, label in items:
+	for key, label in entries:
 		if(label in selectedLabels):
 			out.append(key)
 
@@ -62,7 +53,6 @@ def showMultiSelection(title, entries, selectedKeys = [], selectedLabels = []):
 		body.append(urwid.AttrMap(checkbox, None, focus_map='reversed'))
 
 	body.append(urwid.Divider())
-
 
 	# create ListBox
 	listWalker = urwid.SimpleFocusListWalker(body)
@@ -86,12 +76,15 @@ def showMultiSelection(title, entries, selectedKeys = [], selectedLabels = []):
 	# start urwid loop
 	urwid.MainLoop(main, input_filter=filterEnter, palette=[('reversed', 'standout', '')]).run()
 
+	# get labels of selected items
+	labels = list(filter(lambda x: x[0] in out, entries))
+	labels = list(map(lambda x: x[1], labels))
+
 	# print selection titles
-	print("Selection - {}: {}".format(title, list(map(lambda x: entries[x], out))))
+	print("Selection - {}: {}".format(title, labels))
 
 	# return list with keys
 	return out
-
 
 def filterEnter(keys, raw):
 	if("enter" in keys):

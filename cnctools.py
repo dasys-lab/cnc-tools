@@ -27,7 +27,14 @@ def eclipse(args):
 	call(eargs)
 
 def repos(args):
-	utils.getGithubRepos("CarpeNoctem")
+	repos = utils.getGithubRepos("CarpeNoctem")
+
+	# show selection
+	entries = list(map(lambda x: (x, x['name']), repos))
+	selected = utils.showMultiSelection(u'GitHub Repositories', entries, selectedLabels = ["alica", "alica-plan-designer", "cnc-msl", "supplementary", "msl_gazebo_simulator"])
+
+	for repo in selected:
+		print(repo['ssh_url'])
 
 
 tools = {
