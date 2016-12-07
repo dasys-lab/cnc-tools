@@ -6,6 +6,8 @@ import os
 import urwid
 import copy
 import operator
+import weakref
+from functools import partial
 
 def prompt(text, default=False):
 	answer = str.lower(input(text + " [" + ("Y" if default == True else "y") + "/" + ("N" if default == False else "n") + "] "))
@@ -26,6 +28,60 @@ def getGithubRepos(username):
 	resp = urllib.request.urlopen("https://api.github.com/users/carpe-noctem-cassel/repos").read().decode("utf-8")
 	data = json.loads(resp)
 	return data
+
+def showSelection(title, entries):
+	out = [None]
+
+	# create footer
+	footer = urwid.Text("Select with <LMB> or <space> or <return>.")
+
+	# create list body
+	body = []
+
+	for key, label in entries:
+		button = urwid.Button(label)
+		urwid.connect_signal(button, 'click', selectionButtonClicked, user_args=[(key, label), out])
+		body.append(urwid.AttrMap(button, None, focus_map='reversed'))
+
+	body.append(urwid.Divider())
+
+	main = createListFrame(title, body, footer)
+
+	# start urwid loop
+	urwid.MainLoop(main, palette=[('reversed', 'standout', '')]).run()
+
+	# print selection titles
+	print("Selection - {}: {}".format(title, out[0][1]))
+
+	# return list with keys
+	return out[0][0]
+
+
+def selectionButtonClicked(choice, out, button):
+	out[0] = choice
+	raise urwid.ExitMainLoop()
+
+def createListFrame(title, body, footer):
+	# create ListBox
+	listWalker = urwid.SimpleFocusListWalker(body)
+	listBox = urwid.ListBox(listWalker)
+
+	# create frame
+	frame = urwid.Frame(
+		urwid.LineBox(
+			listBox,
+			title
+		),
+		footer=footer
+	)
+
+	main = urwid.Padding(
+		frame,
+		left=2,
+		right=2
+	)
+
+	return main
 
 def showMultiSelection(title, entries, selectedKeys = [], selectedLabels = []):
 	"""Shows a fullscreen selection for multiple items.
@@ -49,29 +105,12 @@ def showMultiSelection(title, entries, selectedKeys = [], selectedLabels = []):
 			out.append(key)
 
 		checkbox = urwid.CheckBox(label, key in out)
-		urwid.connect_signal(checkbox, 'change', item_chosen, (key, out))
+		urwid.connect_signal(checkbox, 'change', multiselectionCheckboxChanged, user_args=[key, out])
 		body.append(urwid.AttrMap(checkbox, None, focus_map='reversed'))
 
 	body.append(urwid.Divider())
 
-	# create ListBox
-	listWalker = urwid.SimpleFocusListWalker(body)
-	listBox = urwid.ListBox(listWalker)
-
-	# create frame
-	frame = urwid.Frame(
-		urwid.LineBox(
-			listBox,
-			title
-		),
-		footer=footer
-	)
-
-	main = urwid.Padding(
-		frame,
-		left=2,
-		right=2
-	)
+	main = createListFrame(title, body, footer)
 
 	# start urwid loop
 	urwid.MainLoop(main, input_filter=filterEnter, palette=[('reversed', 'standout', '')]).run()
@@ -93,8 +132,7 @@ def filterEnter(keys, raw):
 		return keys
 
 
-def item_chosen(checkbox, new_state, data):
-	(key, out) = data
+def multiselectionCheckboxChanged(key, out, checkbox, new_state):
 	if(new_state):
 		out.append(key)
 	else:

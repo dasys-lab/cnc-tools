@@ -9,16 +9,16 @@ CWD = os.getcwd()
 DIR = os.path.dirname(os.path.realpath(__file__))
 
 def setup(args):
-	if(len(args) > 0):
-		if(args[0] == 'msl'):
-			if(utils.prompt("Do you really want to start the MSL setup?")):
-				call(['sudo', DIR + '/scripts/msl-setup.sh'])
 
-		elif(args[0] == 'ttb'):
-			if(utils.prompt("Do you really want to start the MSL setup?")):
-				call(['sudo', DIR + '/scripts/ttb-setup.sh'])
-	else:
-		print("Choose msl or ttb")
+	selections = [
+		(('/scripts/msl-setup.sh', "MSL Dev PC"), "MSL Dev PC"),
+		(('/scripts/ttb-setup.sh', "Turtlebot PC"), "Turtlebot PC")
+	]
+
+	selected = utils.showSelection("What do you want to setup?", selections)
+
+	if(utils.prompt("Do you really want to start the {} setup?".format(selected[1]))):
+		call(['sudo', DIR + selected[0]])
 
 
 def eclipse(args):
@@ -51,8 +51,6 @@ parser.add_argument('tool', choices=tools.keys(), type=str, help="the name of th
 parser.add_argument('args', nargs=argparse.REMAINDER, type=str, help="args for the tool, see <tool> -h")
 
 args = parser.parse_args()
-print("Tool:", args.tool)
-print("Args:", args.args)
 
 # run tool
 if args.tool in tools:
