@@ -43,7 +43,6 @@ tools = {
 	'repos': repos
 }
 
-
 # Main Script
 
 parser = argparse.ArgumentParser(description="Tools that help us getting boring stuff done.")
