@@ -14,7 +14,7 @@ workspace_path="$HOME/cnws"
 workspace_src="${workspace_path}/src"
 ros_setup_file="/opt/ros/${ros_distro}/setup.sh"
 github_url='git@github.com:carpe-noctem-cassel/'
-repos='alica alica-plan-designer supplementary cnc-msl cnc-msldriver msl_gazebo_simulator'
+repos='alica alica-plan-designer supplementary cnc-msl msl_gazebo_simulator'
 
 # functions
 msg() {

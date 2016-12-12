@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 
-import urllib.request
-import json
-import os
-import urwid
 import copy
-import operator
-import weakref
 from functools import partial
+import json
+import operator
+import os
+from os import path
+from subprocess import call
+import urllib.request
+import urwid
+import weakref
+from collections import OrderedDict
 
 def prompt(text, default=False):
 	answer = str.lower(input(text + " [" + ("Y" if default == True else "y") + "/" + ("N" if default == False else "n") + "] "))
@@ -28,6 +31,11 @@ def getGithubRepos(username):
 	resp = urllib.request.urlopen("https://api.github.com/users/carpe-noctem-cassel/repos").read().decode("utf-8")
 	data = json.loads(resp)
 	return data
+
+def cloneRepo(url, dest):
+	call(['git', 'clone', url, dest])
+
+# ========== TUI ==========
 
 def showSelection(title, entries):
 	out = [None]
@@ -92,7 +100,8 @@ def showMultiSelection(title, entries, selectedKeys = [], selectedLabels = []):
 		a list containing the keys of the selected items
 	"""
 
-	out = copy.deepcopy(selectedKeys)
+	out = []
+	out.extend(selectedKeys)
 
 	# create footer
 	footer = urwid.Text("Select with <LMB> or <space>, hit <return> when finished.")
@@ -100,7 +109,7 @@ def showMultiSelection(title, entries, selectedKeys = [], selectedLabels = []):
 	# create list body
 	body = []
 
-	for key, label in entries:
+	for key, label in entries.items():
 		if(label in selectedLabels):
 			out.append(key)
 
@@ -116,7 +125,7 @@ def showMultiSelection(title, entries, selectedKeys = [], selectedLabels = []):
 	urwid.MainLoop(main, input_filter=filterEnter, palette=[('reversed', 'standout', '')]).run()
 
 	# get labels of selected items
-	labels = list(filter(lambda x: x[0] in out, entries))
+	labels = list(filter(lambda x: x[0] in out, entries.items()))
 	labels = list(map(lambda x: x[1], labels))
 
 	# print selection titles
@@ -130,7 +139,6 @@ def filterEnter(keys, raw):
 		raise urwid.ExitMainLoop()
 	else:
 		return keys
-
 
 def multiselectionCheckboxChanged(key, out, checkbox, new_state):
 	if(new_state):

@@ -1,12 +1,45 @@
 #!/usr/bin/env python3
 
 import argparse
+import json
 import os
+from os import path
+from collections import OrderedDict
+import shutil
 from subprocess import call
+
 import utils
+
+CONFIG_PATH = "~/.config/cnctools.json"
 
 CWD = os.getcwd()
 DIR = os.path.dirname(os.path.realpath(__file__))
+
+def init(args):
+	print("Configure...")
+
+	keys = ['cnws']
+
+	for key in keys:
+		initConfUpdate(key)
+
+	print()
+	print("New Config:")
+	for key, value in CONFIG.items():
+		print("{}: '{}'".format(key, value))
+	print()
+
+	if(utils.prompt("Save changes?", True)):
+		saveConfig()
+		print("Config saved.")
+
+def initConfUpdate(key):
+	if(key in CONFIG.keys()):
+		if(utils.prompt("{}: {}    Change?".format(key, CONFIG[key]), False)):
+			CONFIG[key] = input("{}: ".format(key))
+	else:
+		if(utils.prompt("{}: <not set>    Set?".format(key), True)):
+			CONFIG[key] = input("{}: ".format(key))
 
 def setup(args):
 
@@ -27,21 +60,77 @@ def eclipse(args):
 	call(eargs)
 
 def repos(args):
-	repos = utils.getGithubRepos("CarpeNoctem")
+	if(not checkConfig("cnws")):
+		return
+
+	repoFolders = os.listdir(path.join(CONFIG['cnws'], "src"))
+
+	remoteRepos = OrderedDict()
+
+	ghRepos = utils.getGithubRepos("CarpeNoctem")
+	for repo in ghRepos:
+		remoteRepos[repo["name"]] = repo
+
+	localRepos = dict(filter(lambda x: x[1]['name'] in repoFolders, remoteRepos.items()))
 
 	# show selection
-	entries = list(map(lambda x: (x, x['name']), repos))
-	selected = utils.showMultiSelection(u'GitHub Repositories', entries, selectedLabels = ["alica", "alica-plan-designer", "cnc-msl", "supplementary", "msl_gazebo_simulator"])
+	entries = OrderedDict(map(lambda x: (x[0], x[1]['name']), remoteRepos.items()))
 
-	for repo in selected:
-		print(repo['ssh_url'])
+	selected = utils.showMultiSelection(u'GitHub Repositories', entries, selectedKeys = localRepos.keys())
+
+	print("=============== CHANGES ===============")
+	remove = set(localRepos.keys()) - set(selected)
+	print("Remove:", list(remove))
+
+	add = set(selected) - set(localRepos.keys())
+	print("Add:", list(add))
+	print("=======================================")
+
+	if(len(remove) > 0 and not utils.prompt("WARNING: Removed repos will be deleted! Continue?", False)):
+		print("Aborting!")
+		return
+
+	for repo in remove:
+		shutil.rmtree(path.join(CONFIG['cnws'], "src/" + repo))
+
+	for repo in add:
+		utils.cloneRepo(remoteRepos[repo]['ssh_url'], path.join(CONFIG['cnws'], "src/" + repo))
 
 
 tools = {
 	'setup': setup,
 	'eclipse': eclipse,
-	'repos': repos
+	'repos': repos,
+	'init': init,
 }
+
+
+def checkConfig(key):
+	if(key in CONFIG.keys()):
+		return True
+
+	print("{} not set, please run `cnctools init` first.".format(key))
+	return False
+
+def readConfig():
+	configPath = path.expanduser(CONFIG_PATH)
+
+	if(path.exists(configPath)):
+		configFile = open(configPath, "r+")
+	else:
+		return dict()
+	
+	config = json.load(configFile)
+	configFile.close()
+	return config
+
+def saveConfig():
+	configPath = path.expanduser(CONFIG_PATH)
+	configFile = open(configPath, "w+")
+	json.dump(CONFIG, configFile, indent=4) # dump with pretty print
+	configFile.close()
+
+CONFIG = readConfig()
 
 # Main Script
 
