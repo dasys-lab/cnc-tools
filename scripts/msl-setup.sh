@@ -157,7 +157,7 @@ clone_git_repos() {
 	msg "Cloning repos \"$repos\" into ${workspace_src}..."
 	
 	# FIXME: temporary branches and repos
-	branch=kinetic
+	branch=master
 
 	for r in $repos
 	do
