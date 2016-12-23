@@ -155,6 +155,4 @@ else
 	mkdir -p $taskdir
 
 	run_tasks
-
-	touch $root_taskfile
 fi
