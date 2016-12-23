@@ -5,7 +5,6 @@ set -e
 # vars
 step_count=8
 current_step=0
-root_taskfile=.root_done
 ubuntu_packages='git vim gitk meld bison re2c libode-dev gnuplot-qt libxv-dev libtbb-dev libcgal-demo libcgal-dev xsdcxx libxerces-c-dev freeglut3-dev libvtk5-dev libvtk5-qt4-dev libopencv-dev myrepos openjdk-8-jdk'
 ubuntu_distro=xenial
 ros_distro=kinetic
@@ -35,15 +34,6 @@ append_unique() {
 	f="$1"
 	shift 1
 	grep -q -F "$*" "$f" || echo "$*" >>"$f"
-}
-
-taskdir=$HOME/.msl_tasks
-mark_done() {
-	touch $taskdir/$1
-}
-
-is_done() {
-	test -f $taskdir/$1
 }
 
 # $1 = task function, $2,$3,... = task description
@@ -130,7 +120,7 @@ run_tasks() {
 	do_task install_packages "Install ros and development packages"
 	do_task rosdep_init "Running: rosdep init"
     
-    do_task rosdep_update "Running: rosdep update"
+	do_task rosdep_update "Running: rosdep update"
 	do_task init_workspace "Initializing ros workspace at ${workspace_path}"
     
 	do_task setup_bashrc "Configure ~/.bashrc for you"
@@ -143,7 +133,7 @@ run_tasks() {
 # right privileges.
 if [ "$(id -u)" -ne 0 ] ; then
 	# Second entry
-	[ -f $root_taskfile ] || err "Must be run using sudo, exiting..."
+	err "Must be run using sudo, exiting..."
 else
 	# First entry
 	if [ -n "$1" ]
@@ -151,8 +141,6 @@ else
 		$1
 		exit 0
 	fi
-
-	mkdir -p $taskdir
 
 	run_tasks
 fi
