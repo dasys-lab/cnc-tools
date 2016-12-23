@@ -36,21 +36,6 @@ append_unique() {
 	grep -q -F "$*" "$f" || echo "$*" >>"$f"
 }
 
-# $1 = task function, $2,$3,... = task description
-do_task() {
-	func="$1"
-	task_file="t_${func}"
-	shift 1
-	desc="$*"
-	step "$desc"
-
-	if ! is_done "${task_file}" ; then
-		$func && mark_done "${task_file}"
-	else
-		msg "Already done!"
-	fi
-}
-
 # tasks
 ros_setup() {
 	ros_repo_file="/etc/apt/sources.list.d/ros-latest.list"
@@ -114,18 +99,6 @@ setup_bashrc() {
 	append_bashrc "alias catkin_make='catkin build'"
 }
 
-# This portion of the script has to be run as root
-run_tasks() {
-	do_task ros_setup "Setup ros dependency"
-	do_task install_packages "Install ros and development packages"
-	do_task rosdep_init "Running: rosdep init"
-    
-	do_task rosdep_update "Running: rosdep update"
-	do_task init_workspace "Initializing ros workspace at ${workspace_path}"
-    
-	do_task setup_bashrc "Configure ~/.bashrc for you"
-}
-
 # "main"
 
 # Check for root permissions.
@@ -135,12 +108,21 @@ if [ "$(id -u)" -ne 0 ] ; then
 	# Second entry
 	err "Must be run using sudo, exiting..."
 else
-	# First entry
-	if [ -n "$1" ]
-	then
-		$1
-		exit 0
-	fi
-
-	run_tasks
+	echo "Setup ros dependency"
+	ros_setup 
+	
+	echo "Install ros and development packages"
+	install_packages
+	
+	echo "Running: rosdep init"
+	rosdep_init 
+    
+    	echo "Running: rosdep update"
+	rosdep_update 
+	
+	echo "Initializing ros workspace at ${workspace_path}"
+	init_workspace 
+    
+    	echo "Configure ~/.bashrc for you"
+	setup_bashrc
 fi
