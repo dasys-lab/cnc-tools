@@ -157,5 +157,4 @@ else
 	run_tasks
 
 	touch $root_taskfile
-	chown -R $SUDO_USER $taskdir
 fi
