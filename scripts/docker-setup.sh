@@ -91,12 +91,6 @@ setup_bashrc() {
 	append_bashrc "# The next two lines determine the application domain for ALICA (Team-Modelling software)"
 	append_bashrc "export DOMAIN_FOLDER=\"${workspace_src}/${etc_repo}\""
 	append_bashrc "export DOMAIN_CONFIG_FOLDER=\"${workspace_src}/${etc_repo}/etc\""
-	
-	append_bashrc "# Fancy prompt that also shows the current branch"
-	append_bashrc "export PS1='\[\033[01;32m\]\u@\h\[\033[01;34m\] \w \[\033[01;31m\]\$(__git_ps1 \"[%s]\")\[\033[01;34m\]\$\[\033[00m\] '"
-
-	# The only way to break a habit
-	append_bashrc "alias catkin_make='catkin build'"
 }
 
 # "main"
