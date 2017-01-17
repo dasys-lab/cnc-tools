@@ -1,8 +1,7 @@
 cnc-setup
 =========
 
-> scripts to install [ROS](http://www.ros.org/) Kinetic and domain specific
-> repositories of [carpe-noctem-cassel](https://github.com/carpe-noctem-cassel/cnc-msl)
+scripts to install [ROS](http://www.ros.org/) Kinetic and domain specific repositories of [carpe-noctem-cassel](https://github.com/carpe-noctem-cassel/cnc-msl)
 
 Scripts
 -------
