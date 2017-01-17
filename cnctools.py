@@ -18,7 +18,7 @@ DIR = os.path.dirname(os.path.realpath(__file__))
 def init(args):
 	print("Configure...")
 
-	keys = ['cnws']
+	keys = ['mslws', 'ttbws']
 
 	for key in keys:
 		initConfUpdate(key)
@@ -60,10 +60,18 @@ def eclipse(args):
 	call(eargs)
 
 def repos(args):
-	if(not checkConfig("cnws")):
+	selections = [
+		(('mslws', "MSL Workspace"), "MSL Workspace"),
+		(('ttbws', "TurtleBot Workspace"), "TurtleBot Workspace")
+	]
+
+	selected = utils.showSelection("Repos of which workspace do you want to change?", selections)
+
+	if(not checkConfig(selected[0])):
 		return
 
-	repoFolders = os.listdir(path.join(CONFIG['cnws'], "src"))
+	repoFolders = os.listdir(path.join(os.path.expanduser(CONFIG[selected[0]]), "src"))
+
 
 	remoteRepos = OrderedDict()
 
@@ -91,10 +99,10 @@ def repos(args):
 		return
 
 	for repo in remove:
-		shutil.rmtree(path.join(CONFIG['cnws'], "src/" + repo))
+		shutil.rmtree(path.join(os.path.expanduser(CONFIG[selected[0]]), "src/" + repo))
 
 	for repo in add:
-		utils.cloneRepo(remoteRepos[repo]['ssh_url'], path.join(CONFIG['cnws'], "src/" + repo))
+		utils.cloneRepo(remoteRepos[repo]['ssh_url'], path.join(CONFIG[selected[0]], "src/" + repo))
 
 
 tools = {
