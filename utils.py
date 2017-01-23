@@ -17,7 +17,7 @@ def prompt(text, default=False):
 
 	if(answer == 'y'):
 		return True
-	
+
 	if(answer == 'n'):
 		return False
 

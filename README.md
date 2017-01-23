@@ -1,10 +1,8 @@
-cnc-tools
-=========
+# cnc-tools
 
 > Tools that help us getting boring stuff done.
 
-Progress / TODO
-===============
+## Progress / TODO
 
 - [ ] setup git
 - [ ] setup and manage repos
