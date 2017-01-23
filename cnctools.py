@@ -61,16 +61,16 @@ def eclipse(args):
 
 def repos(args):
 	selections = [
-		(('mslws', "MSL Workspace"), "MSL Workspace"),
-		(('ttbws', "TurtleBot Workspace"), "TurtleBot Workspace")
+		('mslws', "MSL Workspace"),
+		('ttbws', "TurtleBot Workspace")
 	]
 
-	selected = utils.showSelection("Repos of which workspace do you want to change?", selections)
+	selected_ws = utils.showSelection("Repos of which workspace do you want to change?", selections)
 
-	if(not checkConfig(selected[0])):
+	if not checkConfig(selected_ws):
 		return
 
-	repoFolders = os.listdir(path.join(os.path.expanduser(CONFIG[selected[0]]), "src"))
+	repoFolders = os.listdir(path.join(os.path.expanduser(CONFIG[selected_ws]), "src"))
 
 
 	remoteRepos = OrderedDict()
@@ -84,13 +84,13 @@ def repos(args):
 	# show selection
 	entries = OrderedDict(map(lambda x: (x[0], x[1]['name']), remoteRepos.items()))
 
-	selected = utils.showMultiSelection(u'GitHub Repositories', entries, selectedKeys = localRepos.keys())
+	selected_repos = utils.showMultiSelection(u'GitHub Repositories', entries, selectedKeys = localRepos.keys())
 
 	print("=============== CHANGES ===============")
-	remove = set(localRepos.keys()) - set(selected)
+	remove = set(localRepos.keys()) - set(selected_repos)
 	print("Remove:", list(remove))
 
-	add = set(selected) - set(localRepos.keys())
+	add = set(selected_repos) - set(localRepos.keys())
 	print("Add:", list(add))
 	print("=======================================")
 
@@ -99,10 +99,10 @@ def repos(args):
 		return
 
 	for repo in remove:
-		shutil.rmtree(path.join(os.path.expanduser(CONFIG[selected[0]]), "src/" + repo))
+		shutil.rmtree(path.join(os.path.expanduser(CONFIG[selected_ws]), "src/" + repo))
 
 	for repo in add:
-		utils.cloneRepo(remoteRepos[repo]['ssh_url'], path.join(CONFIG[selected[0]], "src/" + repo))
+		utils.cloneRepo(remoteRepos[repo]['ssh_url'], path.join(os.path.expanduser(CONFIG[selected_ws]), "src/" + repo))
 
 
 tools = {
@@ -127,7 +127,7 @@ def readConfig():
 		configFile = open(configPath, "r+")
 	else:
 		return dict()
-	
+
 	config = json.load(configFile)
 	configFile.close()
 	return config
