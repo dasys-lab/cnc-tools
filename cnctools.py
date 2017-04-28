@@ -9,134 +9,166 @@ import shutil
 from subprocess import call
 
 import utils
+import network
 
 CONFIG_PATH = "~/.config/cnctools.json"
 
 CWD = os.getcwd()
 DIR = os.path.dirname(os.path.realpath(__file__))
 
+ROBOTS = {
+    "hairy":    ("player", 8),
+    "myo":      ("player", 11),
+    "nase":     ("player", 9),
+    "savvy":    ("player", 10),
+    "mops":     ("goalie", 1)
+}
+
 def init(args):
-	print("Configure...")
+    print("Configure...")
 
-	keys = ['mslws', 'ttbws']
+    keys = ['mslws', 'ttbws']
 
-	for key in keys:
-		initConfUpdate(key)
+    for key in keys:
+        initConfUpdate(key)
 
-	print()
-	print("New Config:")
-	for key, value in CONFIG.items():
-		print("{}: '{}'".format(key, value))
-	print()
+    print()
+    print("New Config:")
+    for key, value in CONFIG.items():
+        print("{}: '{}'".format(key, value))
+    print()
 
-	if(utils.prompt("Save changes?", True)):
-		saveConfig()
-		print("Config saved.")
+    if(utils.prompt("Save changes?", True)):
+        saveConfig()
+        print("Config saved.")
 
 def initConfUpdate(key):
-	if(key in CONFIG.keys()):
-		if(utils.prompt("{}: {}    Change?".format(key, CONFIG[key]), False)):
-			CONFIG[key] = input("{}: ".format(key))
-	else:
-		if(utils.prompt("{}: <not set>    Set?".format(key), True)):
-			CONFIG[key] = input("{}: ".format(key))
+    if(key in CONFIG.keys()):
+        if(utils.prompt("{}: {}    Change?".format(key, CONFIG[key]), False)):
+            CONFIG[key] = input("{}: ".format(key))
+    else:
+        if(utils.prompt("{}: <not set>    Set?".format(key), True)):
+            CONFIG[key] = input("{}: ".format(key))
 
 def setup(args):
 
-	selections = [
-		(('/scripts/msl-setup.sh', "MSL Dev PC"), "MSL Dev PC"),
-		(('/scripts/ttb-setup.sh', "Turtlebot PC"), "Turtlebot PC")
-	]
+    selections = [
+        (('/scripts/msl-setup.sh', "MSL Dev PC"), "MSL Dev PC"),
+        (('/scripts/ttb-setup.sh', "Turtlebot PC"), "Turtlebot PC")
+    ]
 
-	selected = utils.showSelection("What do you want to setup?", selections)
+    selected = utils.showSelection("What do you want to setup?", selections)
 
-	if(utils.prompt("Do you really want to start the {} setup?".format(selected[1]))):
-		call(['sudo', DIR + selected[0]])
+    if(utils.prompt("Do you really want to start the {} setup?".format(selected[1]))):
+        call(['sudo', DIR + selected[0]])
 
 
 def eclipse(args):
-	eargs = [DIR + '/scripts/eclipse.sh']
-	eargs.extend(args)
-	call(eargs)
+    eargs = [DIR + '/scripts/eclipse.sh']
+    eargs.extend(args)
+    call(eargs)
 
 def repos(args):
-	selections = [
-		('mslws', "MSL Workspace"),
-		('ttbws', "TurtleBot Workspace")
-	]
+    selections = [
+        ('mslws', "MSL Workspace"),
+        ('ttbws', "TurtleBot Workspace")
+    ]
 
-	selected_ws = utils.showSelection("Repos of which workspace do you want to change?", selections)
+    selected_ws = utils.showSelection("Repos of which workspace do you want to change?", selections)
 
-	if not checkConfig(selected_ws):
-		return
+    if not checkConfig(selected_ws):
+        return
 
-	repoFolders = os.listdir(path.join(os.path.expanduser(CONFIG[selected_ws]), "src"))
+    repoFolders = os.listdir(path.join(os.path.expanduser(CONFIG[selected_ws]), "src"))
 
 
-	remoteRepos = OrderedDict()
+    remoteRepos = OrderedDict()
 
-	ghRepos = utils.getGithubRepos("CarpeNoctem")
-	for repo in ghRepos:
-		remoteRepos[repo["name"]] = repo
+    ghRepos = utils.getGithubRepos("CarpeNoctem")
+    for repo in ghRepos:
+        remoteRepos[repo["name"]] = repo
 
-	localRepos = dict(filter(lambda x: x[1]['name'] in repoFolders, remoteRepos.items()))
+    localRepos = dict(filter(lambda x: x[1]['name'] in repoFolders, remoteRepos.items()))
 
-	# show selection
-	entries = OrderedDict(map(lambda x: (x[0], x[1]['name']), remoteRepos.items()))
+    # show selection
+    entries = OrderedDict(map(lambda x: (x[0], x[1]['name']), remoteRepos.items()))
 
-	selected_repos = utils.showMultiSelection(u'GitHub Repositories', entries, selectedKeys = localRepos.keys())
+    selected_repos = utils.showMultiSelection(u'GitHub Repositories', entries, selectedKeys = localRepos.keys())
 
-	print("=============== CHANGES ===============")
-	remove = set(localRepos.keys()) - set(selected_repos)
-	print("Remove:", list(remove))
+    print("=============== CHANGES ===============")
+    remove = set(localRepos.keys()) - set(selected_repos)
+    print("Remove:", list(remove))
 
-	add = set(selected_repos) - set(localRepos.keys())
-	print("Add:", list(add))
-	print("=======================================")
+    add = set(selected_repos) - set(localRepos.keys())
+    print("Add:", list(add))
+    print("=======================================")
 
-	if(len(remove) > 0 and not utils.prompt("WARNING: Removed repos will be deleted! Continue?", False)):
-		print("Aborting!")
-		return
+    if(len(remove) > 0 and not utils.prompt("WARNING: Removed repos will be deleted! Continue?", False)):
+        print("Aborting!")
+        return
 
-	for repo in remove:
-		shutil.rmtree(path.join(os.path.expanduser(CONFIG[selected_ws]), "src/" + repo))
+    for repo in remove:
+        shutil.rmtree(path.join(os.path.expanduser(CONFIG[selected_ws]), "src/" + repo))
 
-	for repo in add:
-		utils.cloneRepo(remoteRepos[repo]['ssh_url'], path.join(os.path.expanduser(CONFIG[selected_ws]), "src/" + repo))
+    for repo in add:
+        utils.cloneRepo(remoteRepos[repo]['ssh_url'], path.join(os.path.expanduser(CONFIG[selected_ws]), "src/" + repo))
 
+def switchWifi(args):
+
+    if len(args) < 1:
+        print("Wi-Fi name missing, possible choices:", list(network.WIFIS))
+        return
+
+    if args[0] not in network.WIFIS:
+         print("Wrong Wi-Fi name! Possible choices:", network.WIFIS)
+         return
+
+    # get hostname
+    hostname_file = open("/etc/hostname", "r")
+    hostname = hostname_file.read().strip()
+
+    if hostname in ROBOTS:
+        (robot_type, robot_id) = ROBOTS[hostname]
+        if utils.prompt("WARNING: /etc/network/interfaces will be replaced! Continue?", False):
+            network.update_interfaces(robot_type, robot_id, args[0])
+        else:
+            print("Canceled by user.")
+    else:
+        print("You are not on a robot!")
 
 tools = {
-	'setup': setup,
-	'eclipse': eclipse,
-	'repos': repos,
-	'init': init,
+    'setup': setup,
+    'eclipse': eclipse,
+    'repos': repos,
+    'init': init,
+    'switch-wifi': switchWifi 
 }
 
 
 def checkConfig(key):
-	if(key in CONFIG.keys()):
-		return True
+    if(key in CONFIG.keys()):
+        return True
 
-	print("{} not set, please run `cnctools init` first.".format(key))
-	return False
+    print("{} not set, please run `cnctools init` first.".format(key))
+    return False
 
 def readConfig():
-	configPath = path.expanduser(CONFIG_PATH)
+    configPath = path.expanduser(CONFIG_PATH)
 
-	if(path.exists(configPath)):
-		configFile = open(configPath, "r+")
-	else:
-		return dict()
+    if(path.exists(configPath)):
+        configFile = open(configPath, "r+")
+    else:
+        return dict()
 
-	config = json.load(configFile)
-	configFile.close()
-	return config
+    config = json.load(configFile)
+    configFile.close()
+    return config
 
 def saveConfig():
-	configPath = path.expanduser(CONFIG_PATH)
-	configFile = open(configPath, "w+")
-	json.dump(CONFIG, configFile, indent=4) # dump with pretty print
-	configFile.close()
+    configPath = path.expanduser(CONFIG_PATH)
+    configFile = open(configPath, "w+")
+    json.dump(CONFIG, configFile, indent=4) # dump with pretty print
+    configFile.close()
 
 CONFIG = readConfig()
 
@@ -150,4 +182,4 @@ args = parser.parse_args()
 
 # run tool
 if args.tool in tools:
-	tools[args.tool](args.args)
+    tools[args.tool](args.args)
