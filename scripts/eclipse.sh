@@ -17,7 +17,7 @@ then
 	exit 1
 fi
 
-echo "copying eclipse config into $buildfolder"
+echo "- Copying eclipse config into $buildfolder"
 for pro in $buildfolder/*
 do
 	settings="$pro/.settings"
@@ -26,7 +26,7 @@ do
 	
 done
 
-echo "fixing _cplusplus defines"
+echo "- Fixing __cplusplus defines"
 ldir="$PWD"
 cd "$buildfolder"
 find ./ -type f -readable -writable -exec sed -i "s/199711L/201103L/g" {} \;
