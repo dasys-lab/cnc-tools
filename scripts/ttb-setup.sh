@@ -14,7 +14,7 @@ workspace_path="$HOME/ttbws"
 workspace_src="${workspace_path}/src"
 ros_setup_file="/opt/ros/${ros_distro}/setup.sh"
 github_url='git@github.com:carpe-noctem-cassel/'
-repos='alica alica-plan-designer supplementary symrock clingo_cpp cnc-turtlebots turtlebot'
+repos='alica alica-plan-designer supplementary symrock clingo cnc-turtlebots turtlebot'
 
 # functions
 msg() {
